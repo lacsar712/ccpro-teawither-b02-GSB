@@ -1,10 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -12,8 +14,8 @@ from django.views.generic import (
     UpdateView,
 )
 
-from .forms import GardenForm, TroughForm, WitherBatchForm
-from .models import Garden, Trough, WitherBatch
+from .forms import GardenForm, GardenMergeForm, TroughForm, WitherBatchForm
+from .models import Garden, MergeRejected, Trough, WitherBatch, merge_gardens
 
 
 def _wants_htmx(request):
@@ -33,6 +35,8 @@ def home(request):
         "loading_count": Trough.objects.filter(
             status=Trough.STATUS_LOADING
         ).count(),
+        # 分园槽数：与槽列表 ?garden=<pk> 过滤行数同源，误差为 0
+        "garden_stats": Garden.objects.annotate(trough_num=Count("troughs")),
     }
     return render(request, "home.html", context)
 
@@ -92,6 +96,55 @@ class GardenDeleteView(LoginRequiredMixin, DeleteView):
         return super().form_valid(form)
 
 
+class GardenMergeView(LoginRequiredMixin, View):
+    """整园合并：仅主管（超级用户）可发起，萎凋工等普通账号一律拒绝。"""
+
+    template_name = "gardens/merge.html"
+
+    def _reject_non_superuser(self, request):
+        if request.user.is_superuser:
+            return None
+        messages.error(request, "仅主管（超级用户）可执行整园合并，已拒绝。")
+        return redirect("garden_list")
+
+    def get(self, request):
+        denied = self._reject_non_superuser(request)
+        if denied:
+            return denied
+        initial = {}
+        source_id = request.GET.get("source")
+        if source_id and source_id.isdigit():
+            initial["source"] = source_id
+        form = GardenMergeForm(initial=initial)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request):
+        denied = self._reject_non_superuser(request)
+        if denied:
+            return denied
+        form = GardenMergeForm(request.POST)
+        if form.is_valid():
+            source = form.cleaned_data["source"]
+            target = form.cleaned_data["target"]
+            try:
+                result = merge_gardens(source, target)
+            except MergeRejected as exc:
+                form.add_error(None, str(exc))
+            else:
+                msg = (
+                    f"已将「{result.source_name}」整园并入「{target.name}」："
+                    f"迁移槽位 {result.moved} 个，源园已删除。"
+                )
+                if result.renamed:
+                    pairs = "、".join(
+                        f"{old}→{new}" for old, new in result.renamed
+                    )
+                    msg += f"同号槽位已自动重编号：{pairs}。"
+                messages.success(request, msg)
+                return redirect("garden_list")
+        return render(request, self.template_name, {"form": form})
+
+
 # ---- Trough ----
 
 
@@ -101,7 +154,17 @@ class TroughListView(LoginRequiredMixin, ListView):
     context_object_name = "troughs"
 
     def get_queryset(self):
-        return Trough.objects.select_related("garden").all()
+        qs = Trough.objects.select_related("garden").all()
+        garden_id = self.request.GET.get("garden", "")
+        if garden_id.isdigit():
+            qs = qs.filter(garden_id=int(garden_id))
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["gardens"] = Garden.objects.all()
+        context["current_garden"] = self.request.GET.get("garden", "")
+        return context
 
     def get(self, request, *args, **kwargs):
         self.object_list = self.get_queryset()

@@ -16,6 +16,9 @@
       <td>{{ g.notes|default:"—" }}</td>
       <td class="actions">
         <a class="btn btn-sm btn-secondary" href="{% url 'garden_edit' g.pk %}">编辑</a>
+        {% if user.is_superuser %}
+        <a class="btn btn-sm btn-secondary" href="{% url 'garden_merge' %}?source={{ g.pk }}">并入…</a>
+        {% endif %}
         <a class="btn btn-sm btn-danger" href="{% url 'garden_delete' g.pk %}">删除</a>
       </td>
     </tr>

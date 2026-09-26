@@ -7,7 +7,11 @@ from .models import Garden, Trough, WitherBatch
 
 
 def ensure_seed_data():
-    """Idempotent seed: users + sample gardens/troughs/batches."""
+    """Idempotent seed: users + sample gardens/troughs/batches.
+
+    两个茶园都含槽号 A-01（同号风险），用于验证整园合并时的
+    自动重编号规则（-M1/-M2…）。
+    """
     User = get_user_model()
 
     if not User.objects.filter(username="admin").exists():
@@ -46,7 +50,7 @@ def ensure_seed_data():
     )
     t3 = Trough.objects.create(
         garden=g2,
-        troughCode="B-01",
+        troughCode="A-01",
         cultivar="黄金芽",
         loadKg=Decimal("88.25"),
         status=Trough.STATUS_WITHERING,

@@ -8,6 +8,9 @@
             hx-get="{% url 'garden_list' %}"
             hx-target="#garden-table"
             hx-swap="innerHTML">刷新列表</button>
+    {% if user.is_superuser %}
+    <a class="btn btn-secondary" href="{% url 'garden_merge' %}">整园合并</a>
+    {% endif %}
     <a class="btn" href="{% url 'garden_create' %}">新建茶园</a>
   </div>
 </div>

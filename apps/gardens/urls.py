@@ -7,6 +7,11 @@ urlpatterns = [
     path("gardens/", views.GardenListView.as_view(), name="garden_list"),
     path("gardens/new/", views.GardenCreateView.as_view(), name="garden_create"),
     path(
+        "gardens/merge/",
+        views.GardenMergeView.as_view(),
+        name="garden_merge",
+    ),
+    path(
         "gardens/<int:pk>/edit/",
         views.GardenUpdateView.as_view(),
         name="garden_edit",

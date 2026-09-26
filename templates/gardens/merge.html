@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}整园合并{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>整园合并</h1>
+  <a class="btn btn-secondary" href="{% url 'garden_list' %}">返回列表</a>
+</div>
+<div class="card">
+  <p><strong>合并规则（与 README「整园合并」一致）：</strong></p>
+  <ul class="muted">
+    <li>仅主管（超级用户）可发起整园合并；萎凋工等普通账号发起将被拒绝。</li>
+    <li>源茶园或目标茶园存在「萎凋中」槽位时，合并被拒绝，须先在槽位列表处理状态。</li>
+    <li>合并后源园全部槽位迁入目标园，源园随即删除，其列表与详情不可再打开。</li>
+    <li>槽位编号冲突时自动重编号：在原编号后追加 <code>-M1</code>、<code>-M2</code>……取首个在目标园内不重名的编号。</li>
+    <li>萎凋批次仍挂原槽主键，展示园名随槽变为目标园；首页分园槽数与槽列表按园过滤行数一致。</li>
+  </ul>
+  <form method="post" class="form-grid">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="form-row">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {{ field.errors }}
+    </div>
+    {% endfor %}
+    {{ form.non_field_errors }}
+    <button class="btn btn-danger" type="submit">确认合并（源园将被删除）</button>
+  </form>
+</div>
+{% endblock %}

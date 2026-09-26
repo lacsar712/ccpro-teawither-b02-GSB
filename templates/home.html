@@ -13,4 +13,30 @@
   <div class="stat"><div class="num">{{ ready_count }}</div><div class="label">可下槽</div></div>
 </div>
 <p class="muted" style="margin-top:1.25rem">规则提示：槽位设为「可下槽」时，最新批次实测含水率须已填写且不超过 40%。</p>
+
+<div class="card" style="margin-top:1.25rem">
+  <h2 style="margin-top:0;font-size:1.1rem;color:var(--tea-green-dark)">分园槽数</h2>
+  {% if garden_stats %}
+  <table class="data">
+    <thead>
+      <tr>
+        <th>茶园</th>
+        <th>槽位数</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for g in garden_stats %}
+      <tr>
+        <td>{{ g.name }}</td>
+        <td>{{ g.trough_num }}</td>
+        <td><a class="btn btn-sm btn-secondary" href="{% url 'trough_list' %}?garden={{ g.pk }}">查看槽位</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">暂无茶园。</p>
+  {% endif %}
+</div>
 {% endblock %}

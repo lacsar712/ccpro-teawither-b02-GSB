@@ -14,6 +14,29 @@ class GardenForm(forms.ModelForm):
         }
 
 
+class GardenMergeForm(forms.Form):
+    source = forms.ModelChoiceField(
+        label="源茶园（合并后删除）",
+        queryset=Garden.objects.all(),
+        empty_label=None,
+        widget=forms.Select(attrs={"class": "input"}),
+    )
+    target = forms.ModelChoiceField(
+        label="目标茶园（保留）",
+        queryset=Garden.objects.all(),
+        empty_label=None,
+        widget=forms.Select(attrs={"class": "input"}),
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        source = cleaned.get("source")
+        target = cleaned.get("target")
+        if source and target and source.pk == target.pk:
+            raise forms.ValidationError("源茶园与目标茶园不能相同。")
+        return cleaned
+
+
 class TroughForm(forms.ModelForm):
     class Meta:
         model = Trough

@@ -4,8 +4,18 @@
 <div class="page-header">
   <h1>萎凋槽</h1>
   <div class="actions">
+    <form method="get" action="{% url 'trough_list' %}" class="actions" style="margin:0;align-items:center">
+      <label for="garden-filter" class="muted">按茶园筛选</label>
+      <select id="garden-filter" name="garden" class="input" style="width:auto" onchange="this.form.submit()">
+        <option value="">全部茶园</option>
+        {% for g in gardens %}
+        <option value="{{ g.pk }}" {% if current_garden == g.pk|stringformat:"s" %}selected{% endif %}>{{ g.name }}</option>
+        {% endfor %}
+      </select>
+      <noscript><button class="btn btn-secondary btn-sm" type="submit">筛选</button></noscript>
+    </form>
     <button class="btn btn-secondary btn-sm"
-            hx-get="{% url 'trough_list' %}"
+            hx-get="{% url 'trough_list' %}{% if current_garden %}?garden={{ current_garden }}{% endif %}"
             hx-target="#trough-table"
             hx-swap="innerHTML">刷新列表</button>
     <a class="btn" href="{% url 'trough_create' %}">新建槽位</a>
