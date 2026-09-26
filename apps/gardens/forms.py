@@ -3,6 +3,28 @@ from django import forms
 from .models import Garden, Trough, WitherBatch
 
 
+class GardenMergeForm(forms.Form):
+    """选择并入的目标茶园（源茶园由 URL 主键确定，不在选项内）。"""
+
+    target = forms.ModelChoiceField(
+        queryset=Garden.objects.all(),
+        label="并入目标茶园",
+        widget=forms.Select(attrs={"class": "input"}),
+    )
+
+    def __init__(self, *args, source=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.source = source
+        if source is not None:
+            self.fields["target"].queryset = Garden.objects.exclude(pk=source.pk)
+
+    def clean_target(self):
+        target = self.cleaned_data["target"]
+        if self.source is not None and target.pk == self.source.pk:
+            raise forms.ValidationError("目标茶园不能与源茶园相同。")
+        return target
+
+
 class GardenForm(forms.ModelForm):
     class Meta:
         model = Garden

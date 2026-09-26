@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}合并茶园{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>合并茶园</h1>
+  <a class="btn btn-secondary" href="{% url 'garden_list' %}">返回列表</a>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">源茶园：{{ source.name }}</h2>
+  <p class="muted">
+    名下 {{ source_troughs|length }} 个槽位
+    {% if source_withering %}<strong style="color:#b3261e">（其中 {{ source_withering }} 个萎凋中）</strong>{% endif %}
+  </p>
+
+  <h3>合并规则</h3>
+  <ol class="muted">
+    <li>仅<strong>主管</strong>可发起合并；萎凋工发起一律拒绝。</li>
+    <li>源茶园的<strong>全部槽位迁入目标茶园</strong>，槽位与批次主键不变，历史批次仍挂原槽，但展示茶园名变为目标茶园。</li>
+    <li>迁移完成后<strong>源茶园随即删除</strong>，其列表与详情均不可再打开（404）；按源园筛选槽位结果为空。</li>
+    <li><strong>萎凋中拒绝</strong>：源园或目标园任一槽位处于「萎凋中」即拒绝合并，须先把该槽状态处理为「装叶中」或「可下槽」。</li>
+    <li><strong>同号自动重编号</strong>（不拒绝）：迁入槽号在目标园已存在时，原编号后依次追加 <code>-M1</code>、<code>-M2</code>、<code>-M3</code>……直到目标园内唯一；无冲突则保留原编号。</li>
+  </ol>
+
+  <h3>选择目标茶园</h3>
+  <form method="post" class="form-grid">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="form-row">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {{ field.errors }}
+    </div>
+    {% endfor %}
+    {{ form.non_field_errors }}
+    <button class="btn btn-danger" type="submit">确认合并并删除源茶园</button>
+    <a class="btn btn-secondary" href="{% url 'garden_list' %}">取消</a>
+  </form>
+
+  {% if targets %}
+  <h3>其他茶园（目标候选）</h3>
+  <table class="data">
+    <thead><tr><th>名称</th><th>槽位数</th><th>萎凋中</th></tr></thead>
+    <tbody>
+      {% for g, withering_count in targets %}
+      <tr>
+        <td>{{ g.name }}</td>
+        <td>{{ g.troughs.count }}</td>
+        <td>{% if withering_count %}<span class="badge badge-withering">{{ withering_count }}</span>{% else %}0{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">暂无其他茶园，请先新建目标茶园。</p>
+  {% endif %}
+</div>
+{% endblock %}

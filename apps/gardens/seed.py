@@ -92,3 +92,14 @@ def ensure_seed_data():
     )
     t4.status = Trough.STATUS_READY
     t4.save()
+
+    # 同号风险：二号园也有 A-01（与一号园重号）。
+    # 两园当前各有萎凋中槽位，直接合并会被拒绝；
+    # 处理完萎凋状态后合并，该槽将按 -M1 规则自动重编号。
+    Trough.objects.create(
+        garden=g2,
+        troughCode="A-01",
+        cultivar="福鼎大白",
+        loadKg=Decimal("76.00"),
+        status=Trough.STATUS_LOADING,
+    )

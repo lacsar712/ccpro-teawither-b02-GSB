@@ -12,5 +12,22 @@
   <div class="stat"><div class="num">{{ withering_count }}</div><div class="label">萎凋中</div></div>
   <div class="stat"><div class="num">{{ ready_count }}</div><div class="label">可下槽</div></div>
 </div>
+
+<div class="card" style="margin-top:1.25rem">
+  <h2 style="margin-top:0">分园槽数</h2>
+  <table class="data">
+    <thead><tr><th>茶园</th><th>槽位数</th><th></th></tr></thead>
+    <tbody>
+      {% for g in garden_stats %}
+      <tr>
+        <td>{{ g.name }}</td>
+        <td>{{ g.trough_total }}</td>
+        <td class="actions"><a class="btn btn-sm btn-secondary" href="{% url 'trough_list' %}?garden={{ g.pk }}">按园筛槽</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted" style="margin-bottom:0">分园槽数与「萎凋槽」列表按园过滤的行数同源；茶园合并后源园消失，迁入槽计入目标园。</p>
+</div>
 <p class="muted" style="margin-top:1.25rem">规则提示：槽位设为「可下槽」时，最新批次实测含水率须已填写且不超过 40%。</p>
 {% endblock %}

@@ -2,15 +2,27 @@
 {% block title %}萎凋槽{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h1>萎凋槽</h1>
+  <h1>萎凋槽{% if selected_garden %} · {{ selected_garden.name }}{% endif %}</h1>
   <div class="actions">
     <button class="btn btn-secondary btn-sm"
-            hx-get="{% url 'trough_list' %}"
+            hx-get="{% url 'trough_list' %}{% if selected_garden_id %}?garden={{ selected_garden_id }}{% endif %}"
             hx-target="#trough-table"
             hx-swap="innerHTML">刷新列表</button>
     <a class="btn" href="{% url 'trough_create' %}">新建槽位</a>
   </div>
 </div>
+
+<form method="get" class="actions" style="margin-bottom:1rem">
+  <select name="garden" class="input" style="max-width:280px" onchange="this.form.submit()">
+    <option value="">全部茶园</option>
+    {% for g in gardens %}
+    <option value="{{ g.pk }}" {% if selected_garden_id == g.pk %}selected{% endif %}>{{ g.name }}</option>
+    {% endfor %}
+  </select>
+  <noscript><button class="btn btn-sm btn-secondary" type="submit">筛选</button></noscript>
+  {% if selected_garden_id %}<a class="btn btn-sm btn-secondary" href="{% url 'trough_list' %}">清除筛选</a>{% endif %}
+</form>
+
 <div class="card" id="trough-table">
   {% include "troughs/_table.html" %}
 </div>

@@ -16,6 +16,11 @@ urlpatterns = [
         views.GardenDeleteView.as_view(),
         name="garden_delete",
     ),
+    path(
+        "gardens/<int:pk>/merge/",
+        views.garden_merge,
+        name="garden_merge",
+    ),
     path("troughs/", views.TroughListView.as_view(), name="trough_list"),
     path("troughs/new/", views.TroughCreateView.as_view(), name="trough_create"),
     path(
